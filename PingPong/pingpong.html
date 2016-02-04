@@ -1,0 +1,468 @@
+<html>
+	<head>
+	<link rel="stylesheet" type="text/css" href="still.css">
+	</head>
+	<body>
+
+	<canvas id="myCanvas" width="400" height="400" >
+	<script type="text/javascript">
+
+
+"use strict";
+
+var g_canvas = document.getElementById("myCanvas");
+var g_ctx = g_canvas.getContext("2d");
+
+
+// =================
+// KEYBOARD HANDLING
+// =================
+
+var g_keys = [];
+
+function handleKeydown(evt) {
+    g_keys[evt.keyCode] = true;
+}
+
+function handleKeyup(evt) {
+    g_keys[evt.keyCode] = false;
+}
+
+// Inspects, and then clears, a key's state
+//
+// This allows a keypress to be "one-shot" e.g. for toggles
+// ..until the auto-repeat kicks in, that is.
+//
+function eatKey(keyCode) {
+    var isDown = g_keys[keyCode];
+    g_keys[keyCode] = false;
+    return isDown;
+}
+
+window.addEventListener("keydown", handleKeydown);
+window.addEventListener("keyup", handleKeyup);
+
+// ============
+// PADDLE STUFF
+// ============
+
+
+
+function Paddle(descr) {
+    for (var property in descr) {
+        this[property] = descr[property];
+    }
+}
+
+var ballOn = false;
+var rectOn = false;
+var computerOn = true;
+Paddle.prototype.halfWidth = 10;
+Paddle.prototype.halfHeight = 50;
+
+Paddle.prototype.update = function () {
+    if (g_keys[this.GO_UP] && this.cy > Paddle.prototype.halfHeight) {
+        this.cy -= 5;
+    } else if (g_keys[this.GO_DOWN] && this.cy < g_canvas.height - Paddle.prototype.halfHeight) {
+        this.cy += 5;
+    }
+   if(g_keys[this.GO_LEFT] && this.cx > 10){
+        this.cx -= 5
+    }else if(g_keys[this.GO_RIGHT] && this.cx < 390){
+        this.cx += 5;
+    }
+    if(g_paddle1.cx > 100){
+        g_paddle1.cx = 100;
+    }
+    if(g_paddle2.cx < 300){
+        g_paddle2.cx = 300;
+    }
+
+    if(computerOn){
+        if(g_ball.cx < 300 && g_ball.xVel < 0 && g_ball2.cx > 50 && g_ball2.xVel > 0){
+            if(g_paddle2.cy < Paddle.prototype.halfHeight){
+                g_paddle2.cy = Paddle.prototype.halfHeight;
+            }else if(g_paddle2.cy > g_canvas.height - Paddle.prototype.halfHeight){
+                 g_paddle2.cy = g_canvas.height - Paddle.prototype.halfHeight;
+            }else{
+                if(g_paddle2.cy > g_ball2.cy){
+                    g_paddle2.cy -= 2.5;
+                }else{
+                    g_paddle2.cy +=2.5;
+                }
+            }
+        }else{
+            if(g_paddle2.cy < Paddle.prototype.halfHeight){
+                g_paddle2.cy = Paddle.prototype.halfHeight;
+            }else if(g_paddle2.cy > g_canvas.height - Paddle.prototype.halfHeight){
+                 g_paddle2.cy = g_canvas.height - Paddle.prototype.halfHeight;
+            }else{
+                if(g_paddle2.cy > g_ball.cy){
+                    g_paddle2.cy -= 2.5;
+                }else{
+                    g_paddle2.cy +=2.5;
+                }
+            }
+        }
+    }
+
+    
+};
+
+var smaller = false;
+var newOne = true;
+var randX = 0;
+var randY = 0;
+
+function collidesRect(ctx){
+    if(g_ball2.cx > randX - 10 && g_ball2.cx < randX + 20 && g_ball2.cy > randY-10 && g_ball2.cy < randY+20){
+        if(ballOn){
+            smaller = !smaller;
+            newOne = true;
+        }
+    }
+    if(smaller){
+        Paddle.prototype.halfHeight = 30;
+    }
+    else{
+        Paddle.prototype.halfHeight = 50;
+    }
+
+}
+
+function rect(ctx){
+    if(rectOn){
+        if(newOne){
+            randX = ((Math.random() * 140)+110);
+            randY = ((Math.random() * 330)+50);
+            newOne = false;
+        }
+        ctx.beginPath();
+        ctx.fillStyle = "gray";
+        ctx.fillRect(randX,randY,20,20);
+        ctx.fillStyle = "white";
+        ctx.arc(randX+10, randY+10, 4, 0, Math.PI*2, true);
+        ctx.fill();
+        ctx.stroke();
+        newOne = false;
+    }
+}
+
+
+Paddle.prototype.render = function (ctx) {
+    ctx.fillStyle = "black";
+    ctx.fillRect(this.cx - this.halfWidth,
+                 this.cy - this.halfHeight,
+                 this.halfWidth * 2,
+                 this.halfHeight * 2);
+    console.log("yo");
+};
+
+Paddle.prototype.collidesWith = function (prevX, prevY, 
+                                          nextX, nextY, 
+                                          r) {
+    var paddleEdge = this.cx;
+    // Check X coords
+    if ((nextX - r < paddleEdge && prevX - r >= paddleEdge) ||
+        (nextX + r > paddleEdge && prevX + r <= paddleEdge)) {
+        // Check Y coords
+        if (nextY + r >= this.cy - this.halfHeight &&
+            nextY - r <= this.cy + this.halfHeight) {
+            // It's a hit!
+            return true;
+        }
+    }
+    // It's a miss!
+    return false;
+};
+
+// PADDLE 1
+
+
+var KEY_R = 'R'.charCodeAt(0);
+var KEY_G = 'G'.charCodeAt(0);
+var KEY_C = 'C'.charCodeAt(0);
+
+function handleKeydown(evt) {
+    g_keys[evt.keyCode] = true;
+    if (evt.keyCode === KEY_R) {
+        ballOn = !ballOn;
+
+    }
+    if(evt.keyCode === KEY_G){
+        rectOn = !rectOn;
+        rect(ctx);
+    }
+    if(evt.keyCode === KEY_C){
+        computerOn = !computerOn;
+        g_paddle2.cx = g_canvas.width - g_paddle2.halfWidth;
+        g_paddle2.cy = 150;
+    }
+
+}
+
+
+var KEY_W = 'W'.charCodeAt(0);
+var KEY_S = 'S'.charCodeAt(0);
+var KEY_A = 'A'.charCodeAt(0);
+var KEY_D = 'D'.charCodeAt(0);
+
+
+var g_paddle1 = new Paddle({
+    cx : 10,
+    cy : 100,
+    
+    GO_UP   : KEY_W,
+    GO_DOWN : KEY_S,
+    GO_LEFT : KEY_A,
+    GO_RIGHT : KEY_D,
+});
+
+// PADDLE 2
+
+var KEY_I = 'I'.charCodeAt(0);
+var KEY_K = 'K'.charCodeAt(0);
+var KEY_J = 'J'.charCodeAt(0);
+var KEY_L = 'L'.charCodeAt(0);
+
+var g_paddle2 = new Paddle({
+    cx : 370,
+    cy : 300,
+    
+    GO_UP   : KEY_I,
+    GO_DOWN : KEY_K,
+    GO_LEFT : KEY_J,
+    GO_RIGHT : KEY_L
+});
+
+var leftScore = 0;
+var rightScore = 0;
+
+
+function scoreBoard (ctx){      
+    ctx.fillStyle = "#3648C1"              
+    ctx.font="bold 40px Arial";
+    ctx.textAlign="center";
+    ctx.fillText(rightScore  + " : " + leftScore , 200, 40 );
+}
+
+
+// ==========
+// BALL STUFF
+// ==========
+
+// BALL STUFF
+
+function Ball(descr) {
+    for (var property in descr) {
+        this[property] = descr[property];
+    }
+}
+
+
+var g_ball = new Ball({
+    cx: 50,
+    cy: 200,
+    radius: 10,
+
+    xVel: 5,
+    yVel: 4
+});
+
+var g_ball2 = new Ball({
+    cx: 100,
+    cy: 200,
+    radius: 10,
+
+    xVel: 2.5,
+    yVel: 2
+});
+
+var g_ball3 = new Ball({
+
+	cx: 70,
+    cy: 200,
+    radius: 10,
+
+    xVel: 5,
+    yVel: 4
+});
+
+
+
+Ball.prototype.update = function () {
+    // Remember my previous position
+    var prevX = this.cx;
+    var prevY = this.cy;
+    // Compute my provisional new position (barring collisions)
+    var nextX = prevX + this.xVel;
+    var nextY = prevY + this.yVel;
+
+    // Bounce off the paddles
+    if (g_paddle1.collidesWith(prevX, prevY, nextX, nextY, this.radius) ||
+        g_paddle2.collidesWith(prevX, prevY, nextX, nextY, this.radius))
+    {
+        this.xVel *= -1;
+    }
+
+    // Bounce off top and bottom edges
+    if (nextY < 0 ||                             // top edge
+        nextY > g_canvas.height) {               // bottom edge
+        this.yVel *= -1;
+        
+    }
+    
+    //Bounce off left edge
+    if (nextX < 0 ){
+        this.xVel *= -1;
+        leftScore++;
+        
+    }
+    //Bounce off right edge    
+    if(nextX > g_canvas.width){
+        this.xVel *= -1;
+        rightScore++;
+    }
+    
+    
+    var margin = 4 * this.radius;
+    if (nextX < -margin || 
+        nextX > g_canvas.width + margin) {
+        this.reset();
+    }
+
+    // *Actually* update my position 
+    this.cx += this.xVel;
+    this.cy += this.yVel;
+};
+
+Ball.prototype.reset = function () {
+    this.cx = 300;
+    this.cy = 100;
+    this.xVel = -5;
+    this.yVel = 4;
+};
+
+Ball.prototype.render = function (ctx) {
+    fillCircle(ctx, this.cx, this.cy, this.radius);
+};
+
+Ball.prototype.renderSlow = function (ctx) {
+    fillCircle2(ctx, this.cx, this.cy, this.radius);
+};
+
+
+// =====
+// UTILS
+// =====
+
+function clearCanvas(ctx) {
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+}
+
+function fillCircle(ctx, x, y, r) {
+    ctx.fillStyle = "#000000";
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+}
+function fillCircle2(ctx, x, y, r) {
+    ctx.fillStyle = "gray";
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+// =============
+// GATHER INPUTS
+// =============
+
+function gatherInputs() {
+    // Nothing to do here!
+    // The event handlers do everything we need for now.
+}
+
+// =================
+// UPDATE SIMULATION
+// =================
+
+function updateSimulation() {
+    if (shouldSkipUpdate()) return;
+
+    g_ball.update();
+    g_ball2.update();
+  
+   if(ballOn){
+        g_ball3.update();
+    }
+    
+    g_paddle1.update();
+    g_paddle2.update();
+}
+
+// Togglable Pause Mode
+var KEY_PAUSE = 'P'.charCodeAt(0);
+var KEY_STEP  = 'O'.charCodeAt(0);
+
+var g_isUpdatePaused = false;
+
+function shouldSkipUpdate() {
+    if (eatKey(KEY_PAUSE)) {
+        g_isUpdatePaused = !g_isUpdatePaused;
+    }
+    return g_isUpdatePaused && !eatKey(KEY_STEP);    
+}
+
+// =================
+// RENDER SIMULATION
+// =================
+
+function renderSimulation(ctx) {
+    clearCanvas(ctx);
+    console.log("hello");
+    g_ball.render(ctx);
+    g_ball2.renderSlow(ctx);
+
+    if (ballOn) {
+    	g_ball3.render(ctx);
+    }else{
+        g_ball3.reset(ctx);
+    }
+
+    g_paddle1.render(ctx);
+    g_paddle2.render(ctx);
+    scoreBoard(ctx);
+    rect(ctx);
+    collidesRect(ctx);
+}
+
+
+// ========
+// MAINLOOP
+// ========
+
+function mainIter() {
+    if (!requestedQuit()) {
+        gatherInputs();
+        updateSimulation();
+        renderSimulation(g_ctx);
+    } else {
+        window.clearInterval(intervalID);
+    }
+}
+
+// Simple voluntary quit mechanism
+//
+var KEY_QUIT = 'Q'.charCodeAt(0);
+function requestedQuit() {
+    return g_keys[KEY_QUIT];
+}
+
+var intervalID = window.setInterval(mainIter, 16.666);
+
+	</script>
+	</canvas>
+
+	</body>
+	
+</html>
