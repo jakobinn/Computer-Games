@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Vig</title>
+</head>
+	<body>
+	<script type="text/javascript">
+
+		function submit(){
+			//get input text	      
+			let text = document.getElementById('text').value;
+
+			//remove spaces
+			text = text.replace(/ /g,'');		     
+			//console.log("text: ", text);
+			document.write(text);
+		  
+		}
+
+	</script>
+
+		<input id="text" type="text" name="text">
+		<button onclick="submit()" type="submit" name=""> 
+			submit
+		</button>
+
+	</body>
+</html>
+
+
+
